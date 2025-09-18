@@ -417,7 +417,7 @@ const CodeOptimizer = ({ themeMode = 'light' }) => {
         setOptimizedCode("");
 
         try {
-            const response = await fetch("http://localhost:8000/api/gemini/optimize", {
+            const response = await fetch(`${process.env.VITE_API_URL}/api/gemini/optimize`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

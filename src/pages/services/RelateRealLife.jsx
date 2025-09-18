@@ -320,7 +320,7 @@ const RelateRealLife = ({ themeMode = 'light' }) => {
     setConcepts([]);
 
     try {
-      const response = await fetch('http://localhost:8000/api/gemini/real-life-analogy', {
+      const response = await fetch(`${process.env.VITE_API_URL}/api/gemini/real-life-analogy`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: code }),

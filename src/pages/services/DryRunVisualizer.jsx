@@ -377,7 +377,7 @@ const DryRunVisualizer = ({ themeMode = 'light' }) => {
         setIsExpanded(false);
 
         try {
-            const response = await fetch("http://localhost:8000/api/gemini/dry-run", {
+            const response = await fetch(`${process.env.VITE_API_URL}/api/gemini/dry-run`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ code: userCode }),
@@ -395,7 +395,6 @@ const DryRunVisualizer = ({ themeMode = 'light' }) => {
                 .map(step => step.trim())
                 .filter(step => step && !step.toLowerCase().startsWith("assuming an input"));
 
-            // Calculate dynamic positions based on content length
             const newNodes = steps.map((step, index) => {
                 const row = Math.floor(index / 2);
                 const col = index % 2;
