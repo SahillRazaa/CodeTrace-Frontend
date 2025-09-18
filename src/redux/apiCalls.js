@@ -4,7 +4,7 @@ import { RegisterFailure, RegisterStart, RegisterSuccess, loginFailure, loginSta
 const login = async(dispatch, user)=>{
     dispatch(loginStart());
     try{
-        const res = await axios.post(`${process.env.VITE_API_URL}api/auth/login`,user);
+        const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`,user);
         
         dispatch(loginSuccess(res.data));
         return true;
@@ -18,7 +18,7 @@ const login = async(dispatch, user)=>{
 const register = async(dispatch, user)=>{
     dispatch(RegisterStart());
     try{
-        const res = await axios.post(`${process.env.VITE_API_URL}/api/auth/register`,user);
+        const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/register`,user);
         dispatch(RegisterSuccess(res.data));
         return true;
     }catch(err)

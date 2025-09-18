@@ -382,7 +382,7 @@ const FixBugGame = ({ themeMode = 'light' }) => {
     setUserSolution('');
 
     try {
-      const response = await fetch(`${process.env.VITE_API_URL}/api/gemini/bug-fixer/generate`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/gemini/bug-fixer/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config)
@@ -416,7 +416,7 @@ const FixBugGame = ({ themeMode = 'light' }) => {
     setError(null);
 
     try {
-      const response = await fetch(`${[process.env.VITE_API_URL]}/api/gemini/bug-fixer/evaluate`, {
+      const response = await fetch(`${[import.meta.env.VITE_API_URL]}/api/gemini/bug-fixer/evaluate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import { FaHome, FaLightbulb, FaSearch, FaCode } from 'react-icons/fa';
+import { FaHome, FaLightbulb, FaCode } from 'react-icons/fa';
 
-// Animations
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
@@ -15,7 +14,6 @@ const pulse = keyframes`
   100% { transform: scale(1); }
 `;
 
-// Styled Components
 const Container = styled.div`
   min-height: 100vh;
   padding: 2rem;
@@ -236,33 +234,6 @@ const ConceptCard = styled.div`
   }
 `;
 
-const ConceptImage = styled.div`
-  width: 100%;
-  height: 200px;
-  border-radius: 12px;
-  margin-bottom: 1.5rem;
-  background: ${props => props.src ? `url(${props.src})` : 
-    props.themeMode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)'};
-  background-size: cover;
-  background-position: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: ${({ themeMode }) => 
-    themeMode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'};
-  font-style: italic;
-  overflow: hidden;
-  position: relative;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: ${({ themeMode }) => 
-      themeMode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'};
-  }
-`;
-
 const ConceptContent = styled.div`
   padding: 0 0.5rem;
 `;
@@ -285,29 +256,13 @@ const ConceptDescription = styled.p`
   font-size: 0.95rem;
 `;
 
+
 const RelateRealLife = ({ themeMode = 'light' }) => {
   const [code, setCode] = useState('');
   const [concepts, setConcepts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-
-  const getUnsplashImage = async (searchTerm) => {
-    try {
-      const UnsplashKey = process.env.REACT_APP_UNSPLASH_ACCESS_KEY;
-      if (!UnsplashKey) return ''; 
-      
-      const response = await fetch(
-        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchTerm)}&client_id=${UnsplashKey}&per_page=1`
-      );
-      if (!response.ok) return '';
-      const data = await response.json();
-      return data.results[0]?.urls?.regular || '';
-    } catch (err) {
-      console.error("Unsplash API error:", err);
-      return '';
-    }
-  };
 
   const analyzeCode = async () => {
     if (!code.trim()) {
@@ -320,7 +275,7 @@ const RelateRealLife = ({ themeMode = 'light' }) => {
     setConcepts([]);
 
     try {
-      const response = await fetch(`${process.env.VITE_API_URL}/api/gemini/real-life-analogy`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/gemini/real-life-analogy`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: code }),
@@ -336,14 +291,8 @@ const RelateRealLife = ({ themeMode = 'light' }) => {
       const cleanedJsonString = result.data.replace(/```json\n|```/g, '');
       const parsedConcepts = JSON.parse(cleanedJsonString).analogies;
 
-      const conceptsWithImages = await Promise.all(
-        parsedConcepts.map(async (concept) => ({
-          ...concept,
-          image: await getUnsplashImage(concept.keywords.join(' '))
-        }))
-      );
+      setConcepts(parsedConcepts); // Set concepts directly without images
 
-      setConcepts(conceptsWithImages);
     } catch (err) {
       console.error("Analysis error:", err);
       setError('Failed to analyze code. Please check the format and try again.');
@@ -420,12 +369,7 @@ console.log("Total:", calculateTotal(shoppingCart));`;
           <ConceptGrid>
             {concepts.map((concept, index) => (
               <ConceptCard key={index} themeMode={themeMode}>
-                <ConceptImage 
-                  src={concept.image} 
-                  themeMode={themeMode}
-                >
-                  {!concept.image && "Concept Illustration"}
-                </ConceptImage>
+                {/* Image component and logic removed */}
                 <ConceptContent>
                   <ConceptTitle themeMode={themeMode}>
                     <FaLightbulb /> {concept.title}

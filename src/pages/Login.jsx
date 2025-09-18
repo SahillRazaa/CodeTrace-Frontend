@@ -186,12 +186,6 @@ const Login = ({ themeMode }) => {
         <Title themeMode={themeMode}>Welcome Back</Title>
         <Subtitle themeMode={themeMode}>Sign in to your account</Subtitle>
 
-        {error && (
-          <ErrorMessage>
-            Invalid email or password
-          </ErrorMessage>
-        )}
-
         <Form onSubmit={handleLogin}>
           <InputGroup>
             <Input
