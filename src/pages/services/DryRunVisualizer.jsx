@@ -10,7 +10,7 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { useNavigate } from "react-router-dom";
-import { FaHome, FaPlay, FaList, FaSitemap, FaExpand, FaCompress } from "react-icons/fa";
+import { FaHome, FaPlay, FaList, FaSitemap } from "react-icons/fa";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -188,7 +188,7 @@ const VisualizationButton = styled.button`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: ${({ active, themeMode }) => 
+  background: ${({ active }) => 
     active ? '#1f2937' : 'transparent'};
   color: ${({ active, themeMode }) => 
     active ? 'white' : (themeMode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)')};
@@ -207,36 +207,14 @@ const VisualizationButton = styled.button`
   }
 `;
 
-const ExpandButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: transparent;
-  color: ${({ themeMode }) => 
-    themeMode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)'};
-  border: 1.5px solid ${({ themeMode }) => 
-    themeMode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'};
-  padding: 0.8rem 1rem;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: ${({ themeMode }) => 
-      themeMode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)'};
-    border-color: #1f2937;
-  }
-`;
-
 const FlowContainer = styled.div`
-  height: ${({ isExpanded }) => isExpanded ? '70vh' : '50vh'};
+  height: 50vh;
   width: 100%;
   margin-top: 1rem;
   border-radius: 12px;
   border: 1px solid ${({ themeMode }) => 
     themeMode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'};
   overflow: hidden;
-  transition: height 0.3s ease;
   position: relative;
 `;
 
@@ -248,9 +226,8 @@ const ResultContainer = styled.div`
   padding: 2rem;
   border: 1px solid ${({ themeMode }) => 
     themeMode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'};
-  max-height: ${({ isExpanded }) => isExpanded ? '70vh' : '50vh'};
+  max-height: 50vh;
   overflow-y: auto;
-  transition: max-height 0.3s ease;
 `;
 
 const NodeCard = styled.div`
@@ -332,107 +309,97 @@ const nodeTypes = {
 };
 
 const DryRunVisualizer = ({ themeMode = 'light' }) => {
-    const [userCode, setUserCode] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [nodes, setNodes, onNodesChange] = useNodesState([]);
-    const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-    const [reactFlowInstance, setReactFlowInstance] = useState(null);
-    const [visualType, setVisualType] = useState(1);
-    const [isExpanded, setIsExpanded] = useState(false);
+  const [userCode, setUserCode] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [reactFlowInstance, setReactFlowInstance] = useState(null);
+  const [visualType, setVisualType] = useState(1);
 
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    const onConnect = useCallback(
-        (params) => setEdges((eds) => addEdge(params, eds)),
-        [setEdges]
-    );
+  const onConnect = useCallback(
+    (params) => setEdges((eds) => addEdge(params, eds)),
+    [setEdges]
+  );
 
-    useEffect(() => {
-        if (nodes.length > 0 && reactFlowInstance) {
-            setTimeout(() => {
-                reactFlowInstance.fitView({ padding: 0.3, duration: 800 });
-            }, 100);
-        }
-    }, [nodes, reactFlowInstance, isExpanded]);
+  useEffect(() => {
+    if (nodes.length > 0 && reactFlowInstance) {
+      setTimeout(() => {
+        reactFlowInstance.fitView({ padding: 0.3, duration: 800 });
+      }, 100);
+    }
+  }, [nodes, reactFlowInstance]);
 
-    const toggleVisualization = (type) => {
-        setVisualType(type);
-    };
+  const toggleVisualization = (type) => {
+    setVisualType(type);
+  };
 
-    const toggleExpand = () => {
-        setIsExpanded(!isExpanded);
-    };
+  const fetchDryRun = async () => {
+    if (!userCode.trim()) {
+      setError("Please enter some code to analyze.");
+      return;
+    }
 
-    const fetchDryRun = async () => {
-        if (!userCode.trim()) {
-            setError("Please enter some code to analyze.");
-            return;
-        }
+    setIsLoading(true);
+    setError(null);
+    setNodes([]);
+    setEdges([]);
 
-        setIsLoading(true);
-        setError(null);
-        setNodes([]);
-        setEdges([]);
-        setIsExpanded(false);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/gemini/dry-run`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: userCode }),
+      });
 
-        try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/gemini/dry-run`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ code: userCode }),
-            });
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "API request failed");
+      }
 
-            if (!response.ok) {
-              const errData = await response.json();
-              throw new Error(errData.error || "API request failed");
-            }
+      const result = await response.json();
 
-            const result = await response.json();
+      const steps = result.data
+        .split(/\*\*Step \d+:\*\*|\n\nStep \d+:|\n\n/g)
+        .map(step => step.trim())
+        .filter(step => step && !step.toLowerCase().startsWith("assuming an input"));
 
-            const steps = result.data
-                .split(/\*\*Step \d+:\*\*|\n\nStep \d+:|\n\n/g)
-                .map(step => step.trim())
-                .filter(step => step && !step.toLowerCase().startsWith("assuming an input"));
+      const newNodes = steps.map((step, index) => {
+        const row = Math.floor(index / 2);
+        const col = index % 2;
+        const x = col * 450 + 100;
+        const y = row * 250 + 50;
+        return {
+          id: `node-${index}`,
+          type: 'custom',
+          position: { x, y },
+          data: { label: step, stepNumber: index + 1 }
+        };
+      });
 
-            const newNodes = steps.map((step, index) => {
-                const row = Math.floor(index / 2);
-                const col = index % 2;
-                const x = col * 450 + 100;
-                const y = row * 250 + 50;
-                
-                return {
-                    id: `node-${index}`,
-                    type: 'custom',
-                    position: { x, y },
-                    data: {
-                        label: step,
-                        stepNumber: index + 1
-                    }
-                };
-            });
+      const newEdges = steps.slice(0, -1).map((_, index) => ({
+        id: `edge-${index}`,
+        source: `node-${index}`,
+        target: `node-${index + 1}`,
+        animated: true,
+        markerEnd: { type: 'arrowclosed', color: '#1f2937' },
+        style: { stroke: '#1f2937', strokeWidth: 2 }
+      }));
 
-            const newEdges = steps.slice(0, -1).map((_, index) => ({
-                id: `edge-${index}`,
-                source: `node-${index}`,
-                target: `node-${index + 1}`,
-                animated: true,
-                markerEnd: { type: 'arrowclosed', color: '#1f2937' },
-                style: { stroke: '#1f2937', strokeWidth: 2 }
-            }));
+      setNodes(newNodes);
+      setEdges(newEdges);
 
-            setNodes(newNodes);
-            setEdges(newEdges);
+    } catch (err) {
+      console.error("Dry run error:", err);
+      setError(err.message || "Failed to fetch dry run.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-        } catch (err) {
-            console.error("Dry run error:", err);
-            setError(err.message || "Failed to fetch dry run.");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const sampleCode = `// Try this sample code or write your own
+  const sampleCode = `// Try this sample code or write your own
 function factorial(n) {
   if (n === 0) return 1;
   return n * factorial(n - 1);
@@ -441,130 +408,117 @@ function factorial(n) {
 const result = factorial(5);
 console.log("Factorial of 5 is:", result);`;
 
-    return (
-        <Container themeMode={themeMode}>
-          <FloatingNavButton 
-            onClick={() => navigate('/')} 
-            themeMode={themeMode}
-            title="Return Home"
-          >
-            <FaHome />
-          </FloatingNavButton>
+  return (
+    <Container themeMode={themeMode}>
+      <FloatingNavButton 
+        onClick={() => navigate('/')} 
+        themeMode={themeMode}
+        title="Return Home"
+      >
+        <FaHome />
+      </FloatingNavButton>
 
-          <GlassPanel themeMode={themeMode}>
-            <Title themeMode={themeMode}>Dry Run Visualizer</Title>
+      <GlassPanel themeMode={themeMode}>
+        <Title themeMode={themeMode}>Dry Run Visualizer</Title>
 
-            <CodeInput
-              themeMode={themeMode}
-              placeholder={sampleCode}
-              value={userCode}
-              onChange={(e) => setUserCode(e.target.value)}
-            />
+        <CodeInput
+          themeMode={themeMode}
+          placeholder={sampleCode}
+          value={userCode}
+          onChange={(e) => setUserCode(e.target.value)}
+        />
 
-            <Button 
-              onClick={fetchDryRun} 
-              disabled={isLoading}
-              themeMode={themeMode}
-            >
-              <FaPlay /> {isLoading ? "Analyzing..." : "Visualize Execution"}
-            </Button>
-            
-            {isLoading && <LoadingSpinner themeMode={themeMode} />}
-            {error && <ErrorMessage>{error}</ErrorMessage>}
+        <Button 
+          onClick={fetchDryRun} 
+          disabled={isLoading}
+          themeMode={themeMode}
+        >
+          <FaPlay /> {isLoading ? "Analyzing..." : "Visualize Execution"}
+        </Button>
 
-            {nodes.length > 0 && (
-                <VisualizationType>
-                    <VisualizationTitle themeMode={themeMode}>
-                        Visualization Mode
-                    </VisualizationTitle>
-                    <VisualizationChange>
-                        <VisualizationButton
-                            onClick={() => toggleVisualization(1)}
-                            active={visualType === 1}
-                            themeMode={themeMode}
-                        >
-                            <FaSitemap /> Flow Chart
-                        </VisualizationButton>
-                        <VisualizationButton
-                            onClick={() => toggleVisualization(2)}
-                            active={visualType === 2}
-                            themeMode={themeMode}
-                        >
-                            <FaList /> Step List
-                        </VisualizationButton>
-                        <ExpandButton 
-                          onClick={toggleExpand} 
-                          themeMode={themeMode}
-                        >
-                          {isExpanded ? <FaCompress /> : <FaExpand />}
-                          {isExpanded ? 'Collapse' : 'Expand'}
-                        </ExpandButton>
-                    </VisualizationChange>
-                </VisualizationType>
-            )}
+        {isLoading && <LoadingSpinner themeMode={themeMode} />}
+        {error && <ErrorMessage>{error}</ErrorMessage>}
 
-            {nodes.length > 0 && (
-                visualType === 1 ? (
-                    <FlowContainer 
-                      themeMode={themeMode} 
-                      isExpanded={isExpanded}
-                    >
-                        <ReactFlowProvider>
-                            <ReactFlow
-                                nodes={nodes}
-                                edges={edges}
-                                onNodesChange={onNodesChange}
-                                onEdgesChange={onEdgesChange}
-                                onConnect={onConnect}
-                                nodeTypes={nodeTypes}
-                                onInit={setReactFlowInstance}
-                                fitView
-                                minZoom={0.1}
-                                maxZoom={2}
-                            >
-                                <Background 
-                                    color={themeMode === 'dark' ? '#374151' : '#e5e7eb'} 
-                                    gap={25} 
-                                />
-                                <Controls
-                                    style={{
-                                        backgroundColor: themeMode === 'dark' ? '#1a1a1a' : 'white',
-                                        border: `1px solid ${themeMode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
-                                        borderRadius: '8px',
-                                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
-                                    }}
-                                />
-                            </ReactFlow>
-                        </ReactFlowProvider>
-                    </FlowContainer>
-                ) : (
-                    <ResultContainer 
-                      themeMode={themeMode} 
-                      isExpanded={isExpanded}
-                    >
-                        <VisualizationTitle themeMode={themeMode}>
-                            Execution Steps
-                        </VisualizationTitle>
-                        {nodes.map((node, index) => (
-                            <NodeCard key={index} themeMode={themeMode}>
-                                <StepNumber>{index + 1}</StepNumber>
-                                <div style={{
-                                    whiteSpace: 'pre-wrap',
-                                    fontFamily: '"Fira Code", monospace',
-                                    lineHeight: '1.6',
-                                    fontSize: '0.9rem',
-                                    color: themeMode === 'dark' ? '#f9fafb' : '#1f2937'
-                                }}>
-                                    {node.data.label}
-                                </div>
-                            </NodeCard>
-                        ))}
-                    </ResultContainer>
-                )
-            )}
-          </GlassPanel>
-        </Container>
-    );
+        {nodes.length > 0 && (
+          <VisualizationType>
+            <VisualizationTitle themeMode={themeMode}>
+              Visualization Mode
+            </VisualizationTitle>
+            <VisualizationChange>
+              <VisualizationButton
+                onClick={() => toggleVisualization(1)}
+                active={visualType === 1}
+                themeMode={themeMode}
+              >
+                <FaSitemap /> Flow Chart
+              </VisualizationButton>
+              <VisualizationButton
+                onClick={() => toggleVisualization(2)}
+                active={visualType === 2}
+                themeMode={themeMode}
+              >
+                <FaList /> Step List
+              </VisualizationButton>
+            </VisualizationChange>
+          </VisualizationType>
+        )}
+
+        {nodes.length > 0 && (
+          visualType === 1 ? (
+            <FlowContainer themeMode={themeMode}>
+              <ReactFlowProvider>
+                <ReactFlow
+                  nodes={nodes}
+                  edges={edges}
+                  onNodesChange={onNodesChange}
+                  onEdgesChange={onEdgesChange}
+                  onConnect={onConnect}
+                  nodeTypes={nodeTypes}
+                  onInit={setReactFlowInstance}
+                  fitView
+                  minZoom={0.1}
+                  maxZoom={2}
+                >
+                  <Background 
+                    color={themeMode === 'dark' ? '#374151' : '#e5e7eb'} 
+                    gap={25} 
+                  />
+                  <Controls
+                    style={{
+                      backgroundColor: themeMode === 'dark' ? '#1a1a1a' : 'white',
+                      border: `1px solid ${themeMode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+                      borderRadius: '8px',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                    }}
+                  />
+                </ReactFlow>
+              </ReactFlowProvider>
+            </FlowContainer>
+          ) : (
+            <ResultContainer themeMode={themeMode}>
+              <VisualizationTitle themeMode={themeMode}>
+                Execution Steps
+              </VisualizationTitle>
+              {nodes.map((node, index) => (
+                <NodeCard key={index} themeMode={themeMode}>
+                  <StepNumber>{index + 1}</StepNumber>
+                  <div style={{
+                    whiteSpace: 'pre-wrap',
+                    fontFamily: '"Fira Code", monospace',
+                    lineHeight: '1.6',
+                    fontSize: '0.9rem',
+                    color: themeMode === 'dark' ? '#f9fafb' : '#1f2937'
+                  }}>
+                    {node.data.label}
+                  </div>
+                </NodeCard>
+              ))}
+            </ResultContainer>
+          )
+        )}
+      </GlassPanel>
+    </Container>
+  );
 };
 
 export default DryRunVisualizer;
