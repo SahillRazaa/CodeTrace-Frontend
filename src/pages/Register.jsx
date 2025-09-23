@@ -17,6 +17,7 @@ const RegisterContainer = styled.div`
 `;
 
 const RegisterCard = styled.div`
+  position: relative;
   width: 100%;
   max-width: 500px;
   padding: 2rem 2rem;
@@ -29,6 +30,47 @@ const RegisterCard = styled.div`
       : '0 20px 40px rgba(0, 0, 0, 0.06)'};
   border: 1px solid ${({ themeMode }) => 
     themeMode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'};
+`;
+
+const Overlay = styled.div`
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(3px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  z-index: 10;
+`;
+
+const Loader = styled.div`
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #ffffff;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+`;
+
+const LoaderText = styled.p`
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  color: #ffffff;
+  text-align: center;
+  animation: fadeIn 0.8s ease-in-out;
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 `;
 
 const Logo = styled(Link)`
@@ -204,21 +246,31 @@ const Register = ({ themeMode }) => {
       return;
     }
 
-    register(dispatch, { username: fullName, email: email, password: password });
+    const success = register(dispatch, { username: fullName, email: email, password: password });
 
-    setFullName('');
-    setEmail('');
-    setPassword('');
-    setConfirmPassword('');
-
-    navigate('/');
+    if (success) {
+      ShowToast({type: 'success', title: "Success", message: "Successfully Registered and Logged In!"});
+      setFullName('');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      navigate('/');
+    } else {
+      ShowToast({type: 'error', title: "Error", message: "Error while loggin in!!"});
+    }
   };
 
   return (
     <RegisterContainer themeMode={themeMode}>
       <RegisterCard themeMode={themeMode}>
+        {isFetching && (
+          <Overlay>
+            <Loader />
+            <LoaderText>Creating your account, please wait...</LoaderText>
+          </Overlay>
+        )}
+
         <Logo to="/" themeMode={themeMode}>CodeTrace</Logo>
-        
         <Title themeMode={themeMode}>Create Account</Title>
         <Subtitle themeMode={themeMode}>Get started with your free account</Subtitle>
 
@@ -287,11 +339,8 @@ const Register = ({ themeMode }) => {
             </PasswordToggle>
           </InputGroup>
 
-          <Button 
-            type="submit"
-            disabled={isFetching}
-          >
-            {isFetching ? 'Creating Account...' : 'Sign Up'}
+          <Button type="submit" disabled={isFetching}>
+            Sign Up
           </Button>
         </Form>
 

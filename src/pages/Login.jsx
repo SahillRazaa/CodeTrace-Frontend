@@ -12,23 +12,74 @@ const LoginContainer = styled.div`
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  background: ${({ themeMode }) => 
+  background: ${({ themeMode }) =>
     themeMode === 'dark' ? '#0f0f0f' : '#f8fafc'};
 `;
 
 const LoginCard = styled.div`
+  position: relative;
   width: 100%;
   max-width: 500px;
   padding: 2rem 2rem;
-  background: ${({ themeMode }) => 
+  background: ${({ themeMode }) =>
     themeMode === 'dark' ? '#1a1a1a' : '#ffffff'};
   border-radius: 16px;
-  box-shadow: ${({ themeMode }) => 
-    themeMode === 'dark' 
-      ? '0 20px 40px rgba(0, 0, 0, 0.2)' 
+  box-shadow: ${({ themeMode }) =>
+    themeMode === 'dark'
+      ? '0 20px 40px rgba(0, 0, 0, 0.2)'
       : '0 20px 40px rgba(0, 0, 0, 0.06)'};
-  border: 1px solid ${({ themeMode }) => 
-    themeMode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'};
+  border: 1px solid
+    ${({ themeMode }) =>
+      themeMode === 'dark'
+        ? 'rgba(255, 255, 255, 0.08)'
+        : 'rgba(0, 0, 0, 0.06)'};
+`;
+
+const Overlay = styled.div`
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(3px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  z-index: 10;
+`;
+
+const Loader = styled.div`
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #ffffff;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+`;
+
+const LoaderText = styled.p`
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  color: #ffffff;
+  text-align: center;
+  animation: fadeIn 0.8s ease-in-out;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 `;
 
 const Logo = styled(Link)`
@@ -36,7 +87,8 @@ const Logo = styled(Link)`
   text-align: center;
   font-size: 1.8rem;
   font-weight: 700;
-  color: ${({ themeMode }) => themeMode === 'dark' ? '#f9fafb' : '#1f2937'};
+  color: ${({ themeMode }) =>
+    themeMode === 'dark' ? '#f9fafb' : '#1f2937'};
   text-decoration: none;
   margin-bottom: 1.5rem;
   font-family: 'Georgia', serif;
@@ -46,14 +98,17 @@ const Title = styled.h1`
   font-size: 1.5rem;
   font-weight: 600;
   text-align: center;
-  color: ${({ themeMode }) => themeMode === 'dark' ? '#f9fafb' : '#1f2937'};
+  color: ${({ themeMode }) =>
+    themeMode === 'dark' ? '#f9fafb' : '#1f2937'};
   margin-bottom: 0.5rem;
 `;
 
 const Subtitle = styled.p`
   text-align: center;
-  color: ${({ themeMode }) => 
-    themeMode === 'dark' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)'};
+  color: ${({ themeMode }) =>
+    themeMode === 'dark'
+      ? 'rgba(255, 255, 255, 0.6)'
+      : 'rgba(0, 0, 0, 0.6)'};
   font-size: 0.9rem;
   margin-bottom: 2rem;
 `;
@@ -72,13 +127,19 @@ const InputGroup = styled.div`
 
 const Input = styled.input`
   padding: 1rem 1.2rem;
-  border: 1px solid ${({ themeMode }) => 
-    themeMode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)'};
+  border: 1px solid
+    ${({ themeMode }) =>
+      themeMode === 'dark'
+        ? 'rgba(255, 255, 255, 0.12)'
+        : 'rgba(0, 0, 0, 0.12)'};
   border-radius: 8px;
   font-size: 0.95rem;
-  background: ${({ themeMode }) => 
-    themeMode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.02)'};
-  color: ${({ themeMode }) => themeMode === 'dark' ? '#f9fafb' : '#1f2937'};
+  background: ${({ themeMode }) =>
+    themeMode === 'dark'
+      ? 'rgba(255, 255, 255, 0.04)'
+      : 'rgba(0, 0, 0, 0.02)'};
+  color: ${({ themeMode }) =>
+    themeMode === 'dark' ? '#f9fafb' : '#1f2937'};
   transition: all 0.2s ease;
 
   &:focus {
@@ -88,8 +149,10 @@ const Input = styled.input`
   }
 
   &::placeholder {
-    color: ${({ themeMode }) => 
-      themeMode === 'dark' ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)'};
+    color: ${({ themeMode }) =>
+      themeMode === 'dark'
+        ? 'rgba(255, 255, 255, 0.4)'
+        : 'rgba(0, 0, 0, 0.4)'};
   }
 `;
 
@@ -104,7 +167,7 @@ const Button = styled.button`
   cursor: pointer;
   transition: all 0.2s ease;
   margin-top: 0.5rem;
-  
+
   &:hover {
     background: #374151;
     transform: translateY(-1px);
@@ -121,8 +184,10 @@ const Button = styled.button`
 const FooterText = styled.p`
   text-align: center;
   margin-top: 2rem;
-  color: ${({ themeMode }) => 
-    themeMode === 'dark' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)'};
+  color: ${({ themeMode }) =>
+    themeMode === 'dark'
+      ? 'rgba(255, 255, 255, 0.6)'
+      : 'rgba(0, 0, 0, 0.6)'};
   font-size: 0.9rem;
 `;
 
@@ -130,59 +195,70 @@ const FooterLink = styled(Link)`
   color: #1f2937;
   font-weight: 500;
   text-decoration: none;
-  
+
   &:hover {
     text-decoration: underline;
   }
 `;
 
-const ErrorMessage = styled.div`
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  margin-bottom: 1rem;
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  text-align: center;
-`;
-
 const Login = ({ themeMode }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
   const dispatch = useDispatch();
-  const { error, currentUser, isFetching } = useSelector(state => state.auth);
+  const { currentUser, isFetching } = useSelector((state) => state.auth);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if(currentUser === null){
-      if(!email || !password){
-        ShowToast({type: 'error', title: "Error", message: "Please Enter everything!!"});
+    if (currentUser === null) {
+      if (!email || !password) {
+        ShowToast({
+          type: 'error',
+          title: 'Error',
+          message: 'Please Enter everything!!',
+        });
         return;
-      }
-      else{
-          const success = await login(dispatch, { email: email, password: password });
+      } else {
+        const success = await login(dispatch, {
+          email: email,
+          password: password,
+        });
 
-          if(success) {
-            ShowToast({type: 'success', title: "Success", message: "Successfully Logged In!"});
-            setEmail("");
-            setPassword("");
-            navigate('/');
-          }
-          else {
-            ShowToast({type: 'error', title: "Error", message: "Error while loggin in!!"});
-          }
+        if (success) {
+          ShowToast({
+            type: 'success',
+            title: 'Success',
+            message: 'Successfully Logged In!',
+          });
+          setEmail('');
+          setPassword('');
+          navigate('/');
+        } else {
+          ShowToast({
+            type: 'error',
+            title: 'Error',
+            message: 'Error while loggin in!!',
+          });
+        }
       }
     }
-  }
+  };
 
   return (
     <LoginContainer themeMode={themeMode}>
       <LoginCard themeMode={themeMode}>
-        <Logo to="/" themeMode={themeMode}>CodeTrace</Logo>
-        
+        {isFetching && (
+          <Overlay>
+            <Loader />
+            <LoaderText>
+              Please be patient while our server is getting ready!
+            </LoaderText>
+          </Overlay>
+        )}
+
+        <Logo to="/" themeMode={themeMode}>
+          CodeTrace
+        </Logo>
         <Title themeMode={themeMode}>Welcome Back</Title>
         <Subtitle themeMode={themeMode}>Sign in to your account</Subtitle>
 
@@ -209,17 +285,13 @@ const Login = ({ themeMode }) => {
             />
           </InputGroup>
 
-          <Button 
-            type="submit"
-            disabled={isFetching}
-          >
-            {isFetching ? 'Signing In...' : 'Sign In'}
+          <Button type="submit" disabled={isFetching}>
+            Sign In
           </Button>
         </Form>
 
         <FooterText themeMode={themeMode}>
-          Don't have an account?{' '}
-          <FooterLink to="/register">Sign up</FooterLink>
+          Don't have an account? <FooterLink to="/register">Sign up</FooterLink>
         </FooterText>
       </LoginCard>
     </LoginContainer>

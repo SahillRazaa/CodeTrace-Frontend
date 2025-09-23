@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { FaSignOutAlt } from 'react-icons/fa';
+import { FaSignOutAlt, FaBars, FaTimes } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { logOut } from '../redux/authSlice';
 
@@ -11,43 +11,80 @@ const Nav = styled.nav`
   align-items: center;
   padding: 0.6rem 5%;
   position: fixed;
-  width: 100vw;
+  width: 100%;
   top: 0;
-  background: ${({ themeMode, theme }) =>
-    themeMode === 'dark' ? 'rgba(17, 24, 39, 0.8)' : 'rgba(255, 255, 255, 0.8)'};
+  background: ${({ themeMode }) =>
+    themeMode === 'dark' ? 'rgba(17, 24, 39, 0.85)' : 'rgba(255, 255, 255, 0.85)'};
   backdrop-filter: blur(16px);
   z-index: 1000;
   border-bottom: 1px solid ${({ themeMode }) =>
     themeMode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'};
-  box-sizing: border-box;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 `;
 
-const NavLeft = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
+const Logo = styled(Link)`
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: ${({ theme, themeMode }) => theme[themeMode].text};
+  text-decoration: none;
+  font-family: 'Georgia', serif;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: ${({ theme, themeMode }) => theme[themeMode].subtleText};
+  }
 `;
 
 const NavRight = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
-
-const Logo = styled(Link)`
+const MobileMenuIcon = styled.button`
+  display: none;
+  background: transparent;
+  border: none;
+  color: ${({ theme, themeMode }) => theme[themeMode].text};
   font-size: 1.5rem;
-  font-weight: 600;
-  color: ${({ themeMode, theme }) => theme[themeMode].text}; /* Changed to text color */
-  text-decoration: none;
-  letter-spacing: -0.5px;
-  font-family: 'Georgia', serif;
-  transition: color 0.2s ease; /* Added transition */
+  cursor: pointer;
 
-  &:hover {
-    color: ${({ themeMode, theme }) => theme[themeMode].subtleText}; /* FIX: Explicitly set hover color */
+  @media (max-width: 768px) {
+    display: block;
+    position: relative;
+    z-index: 1200;
   }
+`;
+
+const MobileMenu = styled.div`
+  position: fixed;
+  top: 0;
+  right: ${({ open }) => (open ? '0' : '-100%')};
+  width: 75%;
+  height: 100vh;
+  background: ${({ themeMode }) =>
+    themeMode === 'dark' ? '#111827' : '#ffffff'};
+  transition: right 0.3s ease-in-out;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  gap: 1.5rem;
+`;
+
+const CloseIcon = styled.button`
+  position: absolute;
+  top: 1.2rem;
+  right: 1.2rem;
+  background: transparent;
+  border: none;
+  color: ${({ theme, themeMode }) => theme[themeMode].text};
+  font-size: 1.5rem;
+  cursor: pointer;
+  z-index: 1201;
 `;
 
 const ThemeToggle = styled.button`
@@ -62,14 +99,8 @@ const ThemeToggle = styled.button`
   align-items: center;
   justify-content: center;
   font-size: 1.2rem;
-  color: ${({ themeMode, theme }) => theme[themeMode].text};
+  color: ${({ theme, themeMode }) => theme[themeMode].text};
   transition: all 0.2s ease;
-
-  &:hover {
-    background: ${({ themeMode, theme }) => theme[themeMode].hover};
-    border-color: ${({ themeMode, theme }) =>
-    themeMode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'};
-  }
 `;
 
 const AuthButton = styled(Link)`
@@ -87,20 +118,13 @@ const AuthButton = styled(Link)`
   gap: 8px;
   align-items: center;
   font-size: 0.95rem;
-  box-shadow: ${({ filled, themeMode, theme }) =>
-    filled ? `0 4px 14px rgba(0, 0, 0, 0.05)` : 'none'};
-  border: 1px solid ${({ filled, themeMode }) =>
-    filled ? 'transparent' : (themeMode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)')};
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: ${({ filled }) =>
-      filled ? `0 6px 20px rgba(0, 0, 0, 0.08)` : `0 4px 12px rgba(0, 0, 0, 0.05)`};
-    background: ${({ filled, theme, themeMode }) =>
-      filled ? (themeMode === 'dark' ? '#e5e7eb' : '#374151') : theme[themeMode].hover};
-    color: ${({ filled, theme, themeMode }) =>
-      filled ? (themeMode === 'dark' ? '#111827' : '#f9fafb') : theme[themeMode].text}; /* FIX: Explicitly set hover color */
-  }
+  border: 1px solid
+    ${({ filled, themeMode }) =>
+      filled
+        ? 'transparent'
+        : themeMode === 'dark'
+        ? 'rgba(255, 255, 255, 0.12)'
+        : 'rgba(0, 0, 0, 0.12)'};
 `;
 
 const UserProfile = styled.div`
@@ -124,167 +148,147 @@ const UserCircle = styled.div`
 
 const LogoutButton = styled.button`
   background: transparent;
-  border: 1px solid ${({ themeMode }) => 
-    themeMode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'};
+  border: none;
   cursor: pointer;
-  color: ${({ themeMode, theme }) => theme[themeMode].text};
-  font-size: 1rem;
-  padding: 0.5rem;
-  border-radius: 8px;
+  color: ${({ theme, themeMode }) => theme[themeMode].text};
+  font-size: 1.2rem;
   display: flex;
   align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background: ${({ themeMode, theme }) => theme[themeMode].hover};
-    border-color: ${({ themeMode }) => 
-    themeMode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'};
-    color: ${({ themeMode, theme }) => theme[themeMode].text};
-  }
 `;
 
-const ConfirmationOverlay = styled.div`
+const ModalOverlay = styled.div`
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: ${({ show }) => (show ? 'flex' : 'none')};
   align-items: center;
-  z-index: 1001;
-  backdrop-filter: blur(4px);
+  justify-content: center;
+  z-index: 2000;
 `;
 
-const ConfirmationDialog = styled.div`
-  background: ${({ themeMode, theme }) => themeMode === 'dark' ? '#1a1a1a' : '#ffffff'};
+const ModalCard = styled.div`
+  background: ${({ themeMode }) => themeMode === 'dark' ? '#1a1a1a' : '#fff'};
+  color: ${({ themeMode }) => themeMode === 'dark' ? '#fff' : '#000'};
   padding: 2rem;
   border-radius: 12px;
-  border: 1px solid ${({ themeMode }) => 
-    themeMode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'};
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-  max-width: 400px;
   width: 90%;
-`;
-
-const DialogMessage = styled.p`
-  color: ${({ themeMode, theme }) => theme[themeMode].text};
-  margin-bottom: 1.5rem;
-  font-size: 1rem;
-  line-height: 1.5;
-`;
-
-const DialogButtons = styled.div`
+  max-width: 400px;
   display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
+  flex-direction: column;
+  gap: 1.5rem;
+  text-align: center;
 `;
 
-const DialogButton = styled.button`
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  border: ${({ variant, themeMode }) => 
-    variant === 'confirm' ? 'none' : `1px solid ${themeMode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'}`};
-  background: ${({ themeMode, theme, variant }) => 
-    variant === 'confirm' ? theme[themeMode].primary : 'transparent'};
-  color: ${({ themeMode, theme, variant }) => 
-    variant === 'confirm' ? theme[themeMode].background : theme[themeMode].text};
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.9rem;
+const ModalButtons = styled.div`
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+`;
 
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: ${({ variant, themeMode, theme }) => 
-      variant === 'confirm' ? `0 4px 14px rgba(0, 0, 0, 0.1)` : '0 4px 12px rgba(0, 0, 0, 0.05)'};
-    background: ${({ themeMode, theme, variant }) => 
-      variant === 'confirm' ? (themeMode === 'dark' ? '#e5e7eb' : '#374151') : theme[themeMode].hover};
-     color: ${({ themeMode, theme, variant }) => 
-      variant === 'confirm' ? (themeMode === 'dark' ? '#111827' : '#f9fafb') : theme[themeMode].text};
-  }
+const ModalButton = styled.button`
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  background: ${({ primary, themeMode }) => primary ? (themeMode === 'dark' ? '#ef4444' : '#ef4444') : 'transparent'};
+  color: ${({ primary, themeMode }) => primary ? '#fff' : (themeMode === 'dark' ? '#fff' : '#000')};
+  border: ${({ primary, themeMode }) => primary ? 'none' : `1px solid ${themeMode === 'dark' ? '#fff' : '#000'}`};
 `;
 
 export default function Navbar({ themeMode, isLoggedIn, setIsLoggedIn, setIsDarkMode, theme }) {
-    const dispatch = useDispatch();
-    const user = useSelector(state => state.auth);
-    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  
-    const handleLogout = (e) => {
-      e.preventDefault();
-      setShowLogoutConfirm(false);
-      dispatch(logOut());
-      setIsLoggedIn(false);
-    };
-  
-    return (
-      <>
-        <Nav themeMode={themeMode} theme={theme}>
-          <NavLeft>
-            <Logo to="/" themeMode={themeMode} theme={theme}>CodeTrace</Logo>
-          </NavLeft>
-          <NavRight>
-            <ThemeToggle 
-              onClick={() => setIsDarkMode(prev => !prev)}
-              themeMode={themeMode}
-              theme={theme}
-            >
-              {themeMode === 'dark' ? '🌙' : '☀️'}
-            </ThemeToggle>
-            {isLoggedIn && user.currentUser ? (
-              <UserProfile>
-                <UserCircle theme={theme} themeMode={themeMode}>
-                  {user.currentUser.username[0].toUpperCase()}
-                </UserCircle>
-                <LogoutButton 
-                  theme={theme} 
-                  themeMode={themeMode}
-                  onClick={() => setShowLogoutConfirm(true)}
-                  title="Logout"
-                >
-                  <FaSignOutAlt />
-                </LogoutButton>
-              </UserProfile>
-            ) : (
-              <>
-                <AuthButton to='/login' themeMode={themeMode} theme={theme}>
-                  Sign In
-                </AuthButton>
-                <AuthButton to='/register' filled="true" themeMode={themeMode} theme={theme}>
-                  Get Started
-                </AuthButton>
-              </>
-            )}
-          </NavRight>
-        </Nav>
-        {showLogoutConfirm && (
-          <ConfirmationOverlay>
-            <ConfirmationDialog themeMode={themeMode} theme={theme}>
-              <DialogMessage themeMode={themeMode} theme={theme}>
-                Are you sure you want to logout?
-              </DialogMessage>
-              <DialogButtons>
-                <DialogButton 
-                  themeMode={themeMode}
-                  theme={theme}
-                  variant="confirm"
-                  onClick={handleLogout}
-                >
-                  Yes, Logout
-                </DialogButton>
-                <DialogButton 
-                  themeMode={themeMode}
-                  theme={theme}
-                  onClick={() => setShowLogoutConfirm(false)}
-                >
-                  Cancel
-                </DialogButton>
-              </DialogButtons>
-            </ConfirmationDialog>
-          </ConfirmationOverlay>
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  const handleLogout = () => {
+    dispatch(logOut());
+    setShowLogoutModal(false);
+    setIsLoggedIn(false);
+    setMobileOpen(false);
+  };
+
+  return (
+    <>
+      <Nav themeMode={themeMode}>
+        <Logo to="/" theme={theme} themeMode={themeMode}>
+          CodeTrace
+        </Logo>
+        <NavRight>
+          <ThemeToggle onClick={() => setIsDarkMode((prev) => !prev)} themeMode={themeMode} theme={theme}>
+            {themeMode === 'dark' ? '🌙' : '☀️'}
+          </ThemeToggle>
+          {isLoggedIn && user.currentUser ? (
+            <UserProfile>
+              <UserCircle theme={theme} themeMode={themeMode}>
+                {user.currentUser.username[0].toUpperCase()}
+              </UserCircle>
+              <LogoutButton theme={theme} themeMode={themeMode} onClick={() => setShowLogoutModal(true)}>
+                <FaSignOutAlt />
+              </LogoutButton>
+            </UserProfile>
+          ) : (
+            <>
+              <AuthButton to="/login" themeMode={themeMode} theme={theme}>
+                Sign In
+              </AuthButton>
+              <AuthButton to="/register" filled="true" themeMode={themeMode} theme={theme}>
+                Get Started
+              </AuthButton>
+            </>
+          )}
+        </NavRight>
+        <MobileMenuIcon onClick={() => setMobileOpen(true)} theme={theme} themeMode={themeMode}>
+          <FaBars />
+        </MobileMenuIcon>
+      </Nav>
+
+      <MobileMenu open={mobileOpen} themeMode={themeMode}>
+        <CloseIcon onClick={() => setMobileOpen(false)} theme={theme} themeMode={themeMode}>
+          <FaTimes />
+        </CloseIcon>
+        <ThemeToggle onClick={() => setIsDarkMode((prev) => !prev)} themeMode={themeMode} theme={theme}>
+          {themeMode === 'dark' ? '🌙' : '☀️'}
+        </ThemeToggle>
+        {isLoggedIn && user.currentUser ? (
+          <UserProfile>
+            <UserCircle theme={theme} themeMode={themeMode}>
+              {user.currentUser.username[0].toUpperCase()}
+            </UserCircle>
+            <LogoutButton theme={theme} themeMode={themeMode} onClick={() => setShowLogoutModal(true)}>
+              <FaSignOutAlt /> Logout
+            </LogoutButton>
+          </UserProfile>
+        ) : (
+          <>
+            <AuthButton to="/login" themeMode={themeMode} theme={theme} onClick={() => setMobileOpen(false)}>
+              Sign In
+            </AuthButton>
+            <AuthButton to="/register" filled="true" themeMode={themeMode} theme={theme} onClick={() => setMobileOpen(false)}>
+              Get Started
+            </AuthButton>
+          </>
         )}
-      </>
-    );
-  }
+      </MobileMenu>
+
+      <ModalOverlay show={showLogoutModal}>
+        <ModalCard themeMode={themeMode}>
+          <h3>Confirm Logout</h3>
+          <p>Are you sure you want to log out?</p>
+          <ModalButtons>
+            <ModalButton themeMode={themeMode} onClick={() => setShowLogoutModal(false)}>
+              Cancel
+            </ModalButton>
+            <ModalButton primary themeMode={themeMode} onClick={handleLogout}>
+              Logout
+            </ModalButton>
+          </ModalButtons>
+        </ModalCard>
+      </ModalOverlay>
+    </>
+  );
+}
