@@ -121,7 +121,7 @@ const NotFound = ({ themeMode }) => (
 const App = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const themeMode = isDarkMode ? 'dark' : 'light';
-  const user = useSelector(state => state.auth);
+  const user = useSelector(state => state.auth).currentUser;
 
   return (
     <ThemeProvider theme={theme}>
