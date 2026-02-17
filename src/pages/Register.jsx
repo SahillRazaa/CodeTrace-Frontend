@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { register } from '../redux/apiCalls';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { ShowToast } from '../utils/Toaster';
 
 const RegisterContainer = styled.div`
   min-height: 100vh;
@@ -254,7 +255,7 @@ const Register = ({ themeMode }) => {
       setEmail('');
       setPassword('');
       setConfirmPassword('');
-      navigate('/');
+      navigate('/login');
     } else {
       ShowToast({type: 'error', title: "Error", message: "Error while loggin in!!"});
     }

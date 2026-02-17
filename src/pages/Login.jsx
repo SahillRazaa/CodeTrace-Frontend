@@ -4,6 +4,7 @@ import { login } from '../redux/apiCalls';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { ShowToast } from '../utils/Toaster';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const LoginContainer = styled.div`
   min-height: 100vh;
@@ -123,6 +124,7 @@ const InputGroup = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  position: relative;
 `;
 
 const Input = styled.input`
@@ -201,9 +203,30 @@ const FooterLink = styled(Link)`
   }
 `;
 
+const PasswordToggle = styled.button`
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: ${({ themeMode }) => 
+    themeMode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.4)'};
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    color: ${({ themeMode }) => themeMode === 'dark' ? '#f9fafb' : '#1f2937'};
+  }
+`;
+
 const Login = ({ themeMode }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const { currentUser, isFetching } = useSelector((state) => state.auth);
   const navigate = useNavigate();
@@ -277,12 +300,19 @@ const Login = ({ themeMode }) => {
           <InputGroup>
             <Input
               themeMode={themeMode}
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              type="password"
-              placeholder="Password"
               required
             />
+            <PasswordToggle 
+              themeMode={themeMode}
+              onClick={() => setShowPassword(!showPassword)}
+              type="button"
+            >
+              {showPassword ? <FaEyeSlash size={14} /> : <FaEye size={14} />}
+            </PasswordToggle>
           </InputGroup>
 
           <Button type="submit" disabled={isFetching}>

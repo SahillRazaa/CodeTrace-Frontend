@@ -6,7 +6,9 @@ import {
   Routes,
   Route,
   Navigate,
+  Link
 } from "react-router-dom";
+import { ToastContainer } from 'react-toastify';
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -14,7 +16,6 @@ import DryRunVisualizer from "./pages/services/DryRunVisualizer";
 import CodeOptimizer from "./pages/services/CodeOptimizer";
 import RelateRealLife from "./pages/services/RelateRealLife";
 import FixBugGame from "./pages/services/FixBugGame";
-import {ToastContainer} from 'react-toastify';
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
@@ -42,7 +43,6 @@ const GlobalStyle = createGlobalStyle`
   }
 `;
 
-// Theme definition
 export const theme = {
   light: {
     primary: '#1f2937', 
@@ -66,7 +66,6 @@ export const theme = {
   }
 };
 
-// Main App Container
 const AppContainer = styled.div`
   width: 100%;
   min-height: 100vh;
@@ -74,6 +73,50 @@ const AppContainer = styled.div`
   color: ${props => props.theme[props.themeMode].text};
   transition: background-color 0.3s ease, color 0.3s ease;
 `;
+
+const NotFoundContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  text-align: center;
+  padding: 20px;
+
+  h1 {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    color: ${props => props.theme[props.themeMode].primary};
+  }
+
+  p {
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
+    color: ${props => props.theme[props.themeMode].subtleText};
+  }
+`;
+
+const HomeButton = styled(Link)`
+  padding: 12px 24px;
+  background-color: ${props => props.theme[props.themeMode].primary};
+  color: ${props => props.theme[props.themeMode].background};
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 0.9;
+  }
+`;
+
+const NotFound = ({ themeMode }) => (
+  <NotFoundContainer themeMode={themeMode}>
+    <h1>404</h1>
+    <p>Oops! The page you are looking for does not exist.</p>
+    <HomeButton to="/" themeMode={themeMode}>Go Back Home</HomeButton>
+  </NotFoundContainer>
+);
 
 const App = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -87,7 +130,7 @@ const App = () => {
         <Router>
           <Routes>
             <Route 
-              exact path="/" 
+              path="/" 
               element={
                 <Home 
                   themeMode={themeMode} 
@@ -95,29 +138,41 @@ const App = () => {
                 />
               } 
             />
+            
             <Route 
-              exact path="/login" 
-              element={<Login themeMode={themeMode} />} 
+              path="/login" 
+              element={
+                user ? <Navigate to="/" replace /> : <Login themeMode={themeMode} />
+              } 
             />
+            
             <Route 
-              exact path="/register" 
-              element={<Register themeMode={themeMode} />} 
+              path="/register" 
+              element={
+                user ? <Navigate to="/" replace /> : <Register themeMode={themeMode} />
+              } 
             />
+
             <Route 
-              exact path="/service/dry-run-visualizer" 
+              path="/service/dry-run-visualizer" 
               element={<DryRunVisualizer themeMode={themeMode} />} 
             />
             <Route 
-              exact path="/service/code-optimizer" 
+              path="/service/code-optimizer" 
               element={<CodeOptimizer themeMode={themeMode} />} 
             />
             <Route 
-              exact path="/service/relate-real-life" 
+              path="/service/relate-real-life" 
               element={<RelateRealLife themeMode={themeMode} />} 
             />
             <Route 
-              exact path="/service/fix-bug-game" 
+              path="/service/fix-bug-game" 
               element={<FixBugGame themeMode={themeMode} />} 
+            />
+
+            <Route 
+              path="*" 
+              element={<NotFound themeMode={themeMode} />} 
             />
           </Routes>
           <ToastContainer />
